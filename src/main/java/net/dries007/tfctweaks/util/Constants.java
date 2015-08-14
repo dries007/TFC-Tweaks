@@ -36,10 +36,38 @@
 
 package net.dries007.tfctweaks.util;
 
+import com.google.gson.*;
+import net.minecraft.server.MinecraftServer;
+
+import java.lang.reflect.Type;
+
 /**
  * @author Dries007
  */
 public class Constants
 {
     public static final String MODID = "TFC-Tweaks";
+    public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().registerTypeHierarchyAdapter(WorldExplorer.class, new WorldExplorerJson()).create();
+
+    private static final class WorldExplorerJson implements JsonSerializer<WorldExplorer>
+    {
+        @Override
+        public JsonElement serialize(WorldExplorer src, Type typeOfSrc, JsonSerializationContext context)
+        {
+            JsonObject object = new JsonObject();
+
+            object.addProperty("seed", MinecraftServer.getServer().worldServers[0].getSeed());
+            object.addProperty("commandSender", src.sender.getCommandSenderName());
+            object.addProperty("centerX", src.centerX);
+            object.addProperty("centerZ", src.centerZ);
+            object.addProperty("rad", src.rad);
+            object.addProperty("totalSize", src.totalSize);
+
+            JsonObject names = new JsonObject();
+            for (int i = 0; i < src.found.length; i++) names.addProperty(WorldExplorer.NAMES.get(i), src.found[i]);
+            object.add("minerals", names);
+
+            return object;
+        }
+    }
 }

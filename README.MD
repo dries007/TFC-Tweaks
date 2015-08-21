@@ -10,6 +10,11 @@ When using any other version, you are on your own. If the version of TFC does no
 
 This mod alters some of the mechanics of TFC to the point where you could say it changes game balance, but those features are disabled by default.
 
+Download
+--------
+
+Download the normal (not -dev or -src) jar from [here](https://jenkins.dries007.net/job/TFC-Tweaks/lastSuccessfulBuild/).
+
 Features
 --------
 

@@ -39,25 +39,26 @@ package net.dries007.tfctweaks;
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.NetworkCheckHandler;
-import cpw.mods.fml.relauncher.Side;
 import net.dries007.tfctweaks.cmd.CmdWorldExplorer;
+import net.dries007.tfctweaks.util.OreDictionaryArmorDyeRecipe;
 import net.dries007.tfctweaks.util.WorldExplorer;
+import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.oredict.RecipeSorter;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import static net.dries007.tfctweaks.util.Constants.MODID;
 import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
@@ -79,7 +80,7 @@ public class TFCTweaks
     private int autoPregen_size = 1000;
 
     @Mod.EventHandler
-    public void preinit(FMLPreInitializationEvent event)
+    public void preInit(FMLPreInitializationEvent event)
     {
         log = event.getModLog();
 
@@ -91,7 +92,15 @@ public class TFCTweaks
     }
 
     @Mod.EventHandler
-    public void serverstart(FMLServerStartingEvent event)
+    public void init(FMLInitializationEvent event)
+    {
+        //noinspection unchecked
+        CraftingManager.getInstance().getRecipeList().add(new OreDictionaryArmorDyeRecipe());
+        RecipeSorter.register(MODID + ":armordyes", OreDictionaryArmorDyeRecipe.class, RecipeSorter.Category.SHAPELESS, "before:minecraft:armordyes");
+    }
+
+    @Mod.EventHandler
+    public void serverStarting(FMLServerStartingEvent event)
     {
         event.registerServerCommand(new CmdWorldExplorer());
     }
@@ -128,11 +137,5 @@ public class TFCTweaks
         autoPregen_enabled = cfg.getBoolean("enabled", CATEGORY_GENERAL + ".autoPregen", autoPregen_enabled, "Enable the automatic pregeneration of the world once the server starts. Only happens when WorldExplorer.json doesn't exist in the world folder.");
         autoPregen_size = cfg.getInt("size", CATEGORY_GENERAL + ".autoPregen", autoPregen_size, 0, Integer.MAX_VALUE, "The size, in blocks, of the autoPregen.");
         if (cfg.hasChanged()) cfg.save();
-    }
-
-    @NetworkCheckHandler
-    public boolean checkVersion(Map<String, String> mods, Side side)
-    {
-        return true;
     }
 }

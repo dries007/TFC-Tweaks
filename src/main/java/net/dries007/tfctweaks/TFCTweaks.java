@@ -95,7 +95,7 @@ public class TFCTweaks
     public void init(FMLInitializationEvent event)
     {
         //noinspection unchecked
-        CraftingManager.getInstance().getRecipeList().add(new OreDictionaryArmorDyeRecipe());
+        CraftingManager.getInstance().getRecipeList().add(OreDictionaryArmorDyeRecipe.INSTANCE);
         RecipeSorter.register(MODID + ":armordyes", OreDictionaryArmorDyeRecipe.class, RecipeSorter.Category.SHAPELESS, "before:minecraft:armordyes");
     }
 

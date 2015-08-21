@@ -57,11 +57,16 @@ import java.util.Map;
  */
 public class OreDictionaryArmorDyeRecipe implements IRecipe
 {
+    public static final OreDictionaryArmorDyeRecipe INSTANCE = new OreDictionaryArmorDyeRecipe();
     private static final Map<Integer, Integer> dyeMap = new HashMap<>();
     static
     {
         String[] dyes = {"Black", "Red", "Green", "Brown", "Blue", "Purple", "Cyan", "LightGray", "Gray", "Pink", "Lime", "Yellow", "LightBlue", "Magenta", "Orange", "White"};
         for(int i = 0; i < 16; i++) dyeMap.put(OreDictionary.getOreID("dye" + dyes[i]), i);
+    }
+
+    private OreDictionaryArmorDyeRecipe()
+    {
     }
 
     @Override

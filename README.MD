@@ -13,7 +13,9 @@ This mod alters some of the mechanics of TFC to the point where you could say it
 Download
 --------
 
-Download the normal (not -dev or -src) jar from [here](https://jenkins.dries007.net/job/TFC-Tweaks/lastSuccessfulBuild/).
+Download the normal (not -dev or -src) jar from [here](https://jenkins.dries007.net/job/TFC-Tweaks/).
+
+TFC forum post [here](http://terrafirmacraft.com/f/topic/8578-).
 
 Features
 --------
@@ -21,3 +23,4 @@ Features
 - OreDictionary armor dye recipe (always on)
 - Fuel on firepit despawn prevention (off by default, despawn time configurable)
 - Combine foods on pickup (off by default)
+- Disable zombie flesh drops (off by default)

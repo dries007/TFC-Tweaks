@@ -45,13 +45,19 @@ import com.bioxx.tfc.api.TFCItems;
 import com.bioxx.tfc.api.Util.Helper;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.living.ZombieEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+
+import java.util.Iterator;
 
 /**
  * @author Dries007
@@ -59,8 +65,36 @@ import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 public class EventHandlers
 {
     public static final EventHandlers I = new EventHandlers();
+    public static boolean disableZombieFlesh;
     public static int fuelOnFireMaxAge;
     public static boolean stackOnPickup;
+
+    /**
+     * Handles:
+     * - zombies dropping zombie flesh
+     */
+    @SubscribeEvent
+    public void livingDropsEvent(LivingDropsEvent event)
+    {
+        World world = event.entity.worldObj;
+        if (!world.isRemote)
+        {
+            if (disableZombieFlesh)
+            {
+                Iterator<EntityItem> i = event.drops.iterator();
+                while (i.hasNext())
+                {
+                    EntityItem entityItem = i.next();
+                    if (entityItem == null) continue;
+                    ItemStack stack = entityItem.getEntityItem();
+                    if (stack == null) continue;
+                    Item item = stack.getItem();
+                    if (item == null) continue;
+                    if (item == Items.rotten_flesh) i.remove();
+                }
+            }
+        }
+    }
 
     /**
      * Handles:

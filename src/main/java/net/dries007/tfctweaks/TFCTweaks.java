@@ -134,6 +134,7 @@ public class TFCTweaks
     {
         EventHandlers.fuelOnFireMaxAge = cfg.getInt("fuelOnFireMaxAge", CATEGORY_GENERAL, 6000, 0, Integer.MAX_VALUE, "Despawn time of fuel thrown on a firepit in ticks. Setting it lower then 6000 (5 minutes) has no effect. 0 will extend the lifetime infinitely.");
         EventHandlers.stackOnPickup = cfg.getBoolean("stackOnPickup", CATEGORY_GENERAL, false, "Auto-stack food together on pickup.");
+        EventHandlers.disableZombieFlesh = cfg.getBoolean("disableZombieFlesh", CATEGORY_GENERAL, false, "Disable rotten flesh drops");
         autoPregen_enabled = cfg.getBoolean("enabled", CATEGORY_GENERAL + ".autoPregen", autoPregen_enabled, "Enable the automatic pregeneration of the world once the server starts. Only happens when WorldExplorer.json doesn't exist in the world folder.");
         autoPregen_size = cfg.getInt("size", CATEGORY_GENERAL + ".autoPregen", autoPregen_size, 0, Integer.MAX_VALUE, "The size, in blocks, of the autoPregen.");
         if (cfg.hasChanged()) cfg.save();

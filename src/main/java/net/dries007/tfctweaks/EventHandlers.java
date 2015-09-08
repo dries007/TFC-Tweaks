@@ -58,6 +58,7 @@ import net.minecraftforge.event.entity.living.ZombieEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 
 import java.util.Iterator;
+import java.util.Random;
 
 /**
  * @author Dries007
@@ -206,6 +207,8 @@ public class EventHandlers
                 if (weight < 0.001)
                 {
                     event.setCanceled(true);
+                    Random worldRandom = event.entityPlayer.worldObj.rand;
+                    event.entityPlayer.playSound("random.pop", 0.2F, ((worldRandom.nextFloat() - worldRandom.nextFloat()) * 0.7F + 1.0F) * 2.0F);
                     break;
                 }
             }

@@ -109,7 +109,7 @@ public class EventHandlers
         if (!world.isRemote)
         {
             Item item = entity.getEntityItem().getItem();
-            if (item == TFCItems.Logs || item == Item.getItemFromBlock(TFCBlocks.Peat))
+            if (item == TFCItems.logs || item == Item.getItemFromBlock(TFCBlocks.peat))
             {
                 if (world.getTileEntity(MathHelper.floor_double(entity.posX), MathHelper.floor_double(entity.posY), MathHelper.floor_double(entity.posZ)) instanceof TEFirepit)
                 {

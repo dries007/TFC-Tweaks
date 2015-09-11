@@ -36,15 +36,15 @@
 
 package net.dries007.tfctweaks.util;
 
-import com.bioxx.tfc.api.TFCBlocks;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSetMultimap;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent;
-import cpw.mods.fml.relauncher.ReflectionHelper;
-import net.dries007.tfctweaks.TFCTweaks;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.Set;
+
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandSaveAll;
@@ -58,16 +58,17 @@ import net.minecraft.world.biome.WorldChunkManager;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.common.ForgeChunkManager;
-import org.apache.commons.io.FileUtils;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent;
+import cpw.mods.fml.relauncher.ReflectionHelper;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ConcurrentModificationException;
-import java.util.List;
-import java.util.Set;
+import com.bioxx.tfc.api.TFCBlocks;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSetMultimap;
+import net.dries007.tfctweaks.TFCTweaks;
+import org.apache.commons.io.FileUtils;
 
 import static com.bioxx.tfc.api.Constant.Global.STONE_FLUXINDEX;
 import static net.minecraft.util.EnumChatFormatting.*;
@@ -208,7 +209,7 @@ public class WorldExplorer
                         {
                             Block block = chunk.getBlock(8, y, 8);
                             TFCTweaks.log.trace(block);
-                            if (block == TFCBlocks.Ore || block == TFCBlocks.Ore2 || block == TFCBlocks.Ore3)
+                            if (block == TFCBlocks.ore || block == TFCBlocks.ore2 || block == TFCBlocks.ore3)
                             {
                                 int meta = chunk.getBlockMetadata(8, y, 8);
                                 int dropped = block.damageDropped(meta);
@@ -216,7 +217,7 @@ public class WorldExplorer
                                 if (id != -1) found[id] = true;
                                 //else TFCTweaks.log.info("Found ore with -1: {}, meta: {}, dropped: {}", block, meta, dropped);
                             }
-                            else if (block == TFCBlocks.StoneSed || block == TFCBlocks.StoneMM)
+                            else if (block == TFCBlocks.stoneSed || block == TFCBlocks.stoneMM)
                             {
                                 int meta = chunk.getBlockMetadata(8, y, 8);
                                 for (int flux : STONE_FLUXINDEX)

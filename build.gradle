@@ -28,7 +28,7 @@ apply plugin: "forge"
 apply plugin: "idea-utils"
 
 group = "net.dries007.tfcmt"
-version = "0.2.0"
+version = "0.3.0"
 
 targetCompatibility = 1.7
 sourceCompatibility = 1.7
@@ -64,6 +64,9 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     classifier = 'src'
     appendix = project.minecraft.version
+    manifest {
+        attributes 'FMLCorePlugin': 'net.dries007.tfctweaks.asm.TFCTweaksLoadingPlugin', 'FMLCorePluginContainsFMLMod': 'true'
+    }
 }
 
 task deobfJar(type: Jar) {
@@ -74,11 +77,17 @@ task deobfJar(type: Jar) {
     }
 	classifier = 'dev'
     appendix = project.minecraft.version
+    manifest {
+        attributes 'FMLCorePlugin': 'net.dries007.tfctweaks.asm.TFCTweaksLoadingPlugin', 'FMLCorePluginContainsFMLMod': 'true'
+    }
 }
 
 jar {
     from "LICENSE.txt"
     appendix = project.minecraft.version
+    manifest {
+        attributes 'FMLCorePlugin': 'net.dries007.tfctweaks.asm.TFCTweaksLoadingPlugin', 'FMLCorePluginContainsFMLMod': 'true'
+    }
 }
 
 artifacts {

@@ -39,12 +39,11 @@ package net.dries007.tfctweaks;
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartedEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.dries007.tfctweaks.asm.TFCTweaksLoadingPlugin;
 import net.dries007.tfctweaks.cmd.CmdWorldExplorer;
+import net.dries007.tfctweaks.util.FluidHacks;
 import net.dries007.tfctweaks.util.OreDictionaryArmorDyeRecipe;
 import net.dries007.tfctweaks.util.WorldExplorer;
 import net.minecraft.item.crafting.CraftingManager;
@@ -66,7 +65,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 /**
  * @author Dries007
  */
-@Mod(modid = MODID)
+@Mod(modid = MODID, dependencies = "required-after:terrafirmacraft;before:*")
 public class TFCTweaks
 {
     public static Logger log;
@@ -80,6 +79,12 @@ public class TFCTweaks
     private int autoPregen_size = 1000;
 
     @Mod.EventHandler
+    public void construction(FMLConstructionEvent e)
+    {
+        if (!TFCTweaksLoadingPlugin.DISABLE_ASM) FluidHacks.construction();
+    }
+
+    @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
         log = event.getModLog();
@@ -89,6 +94,15 @@ public class TFCTweaks
 
         cfg = new Configuration(event.getSuggestedConfigurationFile());
         doConfig(cfg);
+
+        if (TFCTweaksLoadingPlugin.DISABLE_ASM)
+        {
+            log.warn("********************************************************************************************");
+            log.warn("          You have disabled ASM tweaks. All FluidHacks have been disabled.");
+            log.warn("Please don't include this in your pack config. This is to be considered a DEBUG option only!");
+            log.warn("********************************************************************************************");
+        }
+        else FluidHacks.doTheMagic();
     }
 
     @Mod.EventHandler
@@ -132,11 +146,24 @@ public class TFCTweaks
 
     private void doConfig(Configuration cfg)
     {
+        EventHandlers.maxAge = cfg.getInt("maxAge", CATEGORY_GENERAL, 6000, 0, Integer.MAX_VALUE, "Despawn time of all items, (except if mods override this themselves). 0 is forever, be careful with that one. Setting it lower then 6000 (5 minutes) has no effect.");
         EventHandlers.fuelOnFireMaxAge = cfg.getInt("fuelOnFireMaxAge", CATEGORY_GENERAL, 6000, 0, Integer.MAX_VALUE, "Despawn time of fuel thrown on a firepit in ticks. Setting it lower then 6000 (5 minutes) has no effect. 0 will extend the lifetime infinitely.");
         EventHandlers.stackOnPickup = cfg.getBoolean("stackOnPickup", CATEGORY_GENERAL, false, "Auto-stack food together on pickup.");
         EventHandlers.disableZombieFlesh = cfg.getBoolean("disableZombieFlesh", CATEGORY_GENERAL, false, "Disable rotten flesh drops");
-        autoPregen_enabled = cfg.getBoolean("enabled", CATEGORY_GENERAL + ".autoPregen", autoPregen_enabled, "Enable the automatic pregeneration of the world once the server starts. Only happens when WorldExplorer.json doesn't exist in the world folder.");
-        autoPregen_size = cfg.getInt("size", CATEGORY_GENERAL + ".autoPregen", autoPregen_size, 0, Integer.MAX_VALUE, "The size, in blocks, of the autoPregen.");
+        EventHandlers.disableSpiderEye = cfg.getBoolean("disableSpiderEye", CATEGORY_GENERAL, false, "Disable spider eye drops");
+
+        cfg.getCategory(CATEGORY_GENERAL + ".autopregen").setRequiresWorldRestart(true);
+        autoPregen_enabled = cfg.getBoolean("enabled", CATEGORY_GENERAL + ".autopregen", autoPregen_enabled, "Enable the automatic pregeneration of the world once the server starts. Only happens when WorldExplorer.json doesn't exist in the world folder.");
+        autoPregen_size = cfg.getInt("size", CATEGORY_GENERAL + ".autopregen", autoPregen_size, 0, Integer.MAX_VALUE, "The size, in blocks, of the autoPregen.");
+
+        if (!TFCTweaksLoadingPlugin.DISABLE_ASM)
+        {
+            cfg.addCustomCategoryComment(CATEGORY_GENERAL + ".fluidhacks", "Experimental.");
+            cfg.getCategory(CATEGORY_GENERAL + ".fluidhacks").setRequiresMcRestart(true);
+            FluidHacks.makeAllWaterFTCWater = cfg.getBoolean("makeAllWaterFTCWater", CATEGORY_GENERAL + ".fluidhacks", false, "Override the vanilla water with TFC's fresh water.");
+            FluidHacks.makeAllLavaFTCLava = cfg.getBoolean("makeAllLavaFTCLava", CATEGORY_GENERAL + ".fluidhacks", false, "Override the vanilla lava with TFC's fresh lava.");
+        }
+
         if (cfg.hasChanged()) cfg.save();
     }
 }

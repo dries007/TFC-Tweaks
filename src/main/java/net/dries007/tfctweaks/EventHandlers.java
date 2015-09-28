@@ -45,7 +45,6 @@ import com.bioxx.tfc.api.TFCItems;
 import com.bioxx.tfc.api.Util.Helper;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -54,7 +53,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.item.ItemExpireEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.entity.living.ZombieEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 
 import java.util.Iterator;
@@ -67,6 +65,8 @@ public class EventHandlers
 {
     public static final EventHandlers I = new EventHandlers();
     public static boolean disableZombieFlesh;
+    public static boolean disableSpiderEye;
+    public static int maxAge;
     public static int fuelOnFireMaxAge;
     public static boolean stackOnPickup;
 
@@ -80,7 +80,7 @@ public class EventHandlers
         World world = event.entity.worldObj;
         if (!world.isRemote)
         {
-            if (disableZombieFlesh)
+            if (disableZombieFlesh || disableSpiderEye)
             {
                 Iterator<EntityItem> i = event.drops.iterator();
                 while (i.hasNext())
@@ -91,7 +91,8 @@ public class EventHandlers
                     if (stack == null) continue;
                     Item item = stack.getItem();
                     if (item == null) continue;
-                    if (item == Items.rotten_flesh) i.remove();
+                    if (disableZombieFlesh && item == Items.rotten_flesh) i.remove();
+                    else if (disableSpiderEye && item == Items.spider_eye) i.remove();
                 }
             }
         }
@@ -109,6 +110,12 @@ public class EventHandlers
         if (!world.isRemote)
         {
             Item item = entity.getEntityItem().getItem();
+            if (maxAge == 0) event.setCanceled(true);
+            else if (entity.age < maxAge)
+            {
+                event.extraLife = maxAge - entity.age;
+                event.setCanceled(true);
+            }
             if (item == TFCItems.logs || item == Item.getItemFromBlock(TFCBlocks.peat))
             {
                 if (world.getTileEntity(MathHelper.floor_double(entity.posX), MathHelper.floor_double(entity.posY), MathHelper.floor_double(entity.posZ)) instanceof TEFirepit)

@@ -52,13 +52,13 @@ public class Helper
      * Pure evil
      * http://stackoverflow.com/a/3301720
      */
-    public static void setFinalStatic(Field field, Object newValue)
+    public static void setFinal(Field field, Object instance, Object newValue)
     {
         try
         {
             int modifiers = field.getModifiers();
             modifiersField.setInt(field, modifiers & ~Modifier.FINAL);
-            field.set(null, newValue);
+            field.set(instance, newValue);
             modifiersField.setInt(field, modifiers);
         }
         catch (Exception e)

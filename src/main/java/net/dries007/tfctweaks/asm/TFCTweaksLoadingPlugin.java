@@ -43,10 +43,12 @@ import java.util.Map;
 /**
  * @author Dries007
  */
+@IFMLLoadingPlugin.Name(TFCTweaksLoadingPlugin.NAME)
 @IFMLLoadingPlugin.TransformerExclusions({"net.dries007.tfctweaks"})
 public class TFCTweaksLoadingPlugin implements IFMLLoadingPlugin
 {
     public static final boolean DISABLE_ASM = System.getProperties().containsKey("net.dries007.tfctweaks.asm.disable");
+    public static final String NAME = "TFCTweaks-ASM";
 
     @Override
 
@@ -54,7 +56,7 @@ public class TFCTweaksLoadingPlugin implements IFMLLoadingPlugin
     {
         if (DISABLE_ASM) return new String[0];
 
-        return new String[]{FluidRegistryCT.class.getName()};
+        return new String[]{FluidHacksCT.class.getName()};
     }
 
     @Override

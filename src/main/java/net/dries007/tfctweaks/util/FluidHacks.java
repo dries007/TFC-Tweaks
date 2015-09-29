@@ -40,11 +40,17 @@ import com.bioxx.tfc.api.TFCBlocks;
 import com.bioxx.tfc.api.TFCFluids;
 import com.google.common.collect.BiMap;
 import cpw.mods.fml.relauncher.ReflectionHelper;
-import net.dries007.tfctweaks.TFCTweaks;
+import net.dries007.tfctweaks.asm.FluidHacksCT;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
+
+import static net.dries007.tfctweaks.asm.FluidHacksCT.*;
 
 /**
  * @author Dries007
@@ -59,7 +65,7 @@ public class FluidHacks
     public static final Block OLD_WATER_BLOCK = Blocks.water;
     public static final Block OLD_FLOWING_WATER_BLOCK = Blocks.flowing_water;
     public static final Block OLD_LAVA_BLOCK = Blocks.lava;
-    public static final Block OLD_FLOWINING_LAVA_BLOCK = Blocks.flowing_lava;
+    public static final Block OLD_FLOWING_LAVA_BLOCK = Blocks.flowing_lava;
 
     private static boolean magic = false;
     private static BiMap<String, Fluid> fluidsMap = ReflectionHelper.getPrivateValue(FluidRegistry.class, null, "fluids");
@@ -78,29 +84,78 @@ public class FluidHacks
     {
         if (magic) throw new IllegalStateException("You can't magic twice.");
         magic = true;
+        FluidHacksCT.magic = true;
 
         // do the hack
         if (makeAllWaterFTCWater)
         {
-            Helper.setFinalStatic(ReflectionHelper.findField(FluidRegistry.class, "WATER"), TFCFluids.FRESHWATER);
-            Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150355_j", "water"), TFCBlocks.freshWaterStationary);
-            Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150358_i", "flowing_water"), TFCBlocks.freshWater);
+            Helper.setFinal(ReflectionHelper.findField(FluidRegistry.class, "WATER"), null, TFCFluids.FRESHWATER);
+            Helper.setFinal(ReflectionHelper.findField(Blocks.class, "field_150355_j", "water"), null, TFCBlocks.freshWaterStationary);
+            Helper.setFinal(ReflectionHelper.findField(Blocks.class, "field_150358_i", "flowing_water"), null, TFCBlocks.freshWater);
         }
         else FluidRegistry.registerFluid(OLD_WATER_FLUID);
 
         if (makeAllLavaFTCLava)
         {
-            Helper.setFinalStatic(ReflectionHelper.findField(FluidRegistry.class, "LAVA"), TFCFluids.LAVA);
-            Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150353_l", "lava"), TFCBlocks.lavaStationary);
-            Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150356_k", "flowing_lava"), TFCBlocks.lava);
+            Helper.setFinal(ReflectionHelper.findField(FluidRegistry.class, "LAVA"), null, TFCFluids.LAVA);
+            Helper.setFinal(ReflectionHelper.findField(Blocks.class, "field_150353_l", "lava"), null, TFCBlocks.lavaStationary);
+            Helper.setFinal(ReflectionHelper.findField(Blocks.class, "field_150356_k", "flowing_lava"), null, TFCBlocks.lava);
         }
         else FluidRegistry.registerFluid(OLD_LAVA_FLUID);
 
-        TFCTweaks.log.info(Blocks.lava == TFCBlocks.lavaStationary);
-        TFCTweaks.log.info(Blocks.flowing_lava == TFCBlocks.lava);
-        TFCTweaks.log.info(Blocks.water == TFCBlocks.freshWaterStationary);
-        TFCTweaks.log.info(Blocks.flowing_water == TFCBlocks.freshWater);
+        for (String className : CLASSES_OF_INTEREST)
+        {
+            try
+            {
+                Class c = Class.forName(className);
+                Collection<Object> objects = OBJECTS_OF_INTEREST.get(className);
+
+                for (Field field : c.getDeclaredFields())
+                {
+                    if (!field.getType().isAssignableFrom(Block.class) || field.getName().startsWith("this$")) continue;
+                    field.setAccessible(true);
+                    if (Modifier.isStatic(field.getModifiers()))
+                    {
+                        replace(field, null);
+                    }
+                    else
+                    {
+                        for (Object object : objects)
+                        {
+                            replace(field, object);
+                        }
+                    }
+                }
+            }
+            catch (ClassNotFoundException | IllegalAccessException e)
+            {
+                LOG.error(e);
+            }
+        }
 
         ReflectionHelper.setPrivateValue(FluidRegistry.class, null, null, "fluidBlocks");
+    }
+
+    private static void replace(Field field, Object o) throws IllegalAccessException
+    {
+        if (makeAllWaterFTCWater)
+        {
+            replace(field, o, OLD_WATER_BLOCK, TFCBlocks.freshWaterStationary);
+            replace(field, o, OLD_FLOWING_WATER_BLOCK, TFCBlocks.freshWater);
+        }
+        if (makeAllLavaFTCLava)
+        {
+            replace(field, o, OLD_LAVA_BLOCK, TFCBlocks.lavaStationary);
+            replace(field, o, OLD_FLOWING_LAVA_BLOCK, TFCBlocks.lava);
+        }
+    }
+
+    private static void replace(Field field, Object instance, Block oldValue, Block newValue) throws IllegalAccessException
+    {
+        if (field.get(instance) == oldValue)
+        {
+            LOG.info("Changed '{}' from '{}' to '{}'", field.toString(), oldValue.getUnlocalizedName(), newValue.getUnlocalizedName());
+            Helper.setFinal(field, instance, newValue);
+        }
     }
 }

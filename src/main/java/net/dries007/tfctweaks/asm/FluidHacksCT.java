@@ -36,17 +36,17 @@
 
 package net.dries007.tfctweaks.asm;
 
-import com.bioxx.tfc.api.TFCFluids;
-import com.google.common.collect.BiMap;
-import cpw.mods.fml.common.FMLLog;
-import net.dries007.tfctweaks.util.FluidHacks;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import net.minecraft.launchwrapper.IClassTransformer;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ListIterator;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -54,21 +54,92 @@ import static org.objectweb.asm.Opcodes.*;
 /**
  * @author Dries007
  */
-public class FluidRegistryCT implements IClassTransformer
+public class FluidHacksCT implements IClassTransformer
 {
+    public static final Logger LOG = LogManager.getLogger(TFCTweaksLoadingPlugin.NAME);
+    public static final List<String> CLASSES_OF_INTEREST = new ArrayList<>();
+    public static final Multimap<String, Object> OBJECTS_OF_INTEREST = HashMultimap.create();
     public static final int DONE = 3;
     public static int done = 0;
+    public static boolean magic = false;
+
+    public static void initObject(String name, Object o)
+    {
+        if (magic) return;
+        OBJECTS_OF_INTEREST.put(name, o);
+    }
 
     @Override
     public byte[] transform(String originalName, String transformedName, byte[] bytes)
     {
-        if (originalName.equals("net.minecraftforge.fluids.FluidRegistry")) return magic(bytes);
+        if (originalName.equals("net.minecraftforge.fluids.FluidRegistry")) return fluidRegistryMagic(bytes);
+        if (!magic && !transformedName.startsWith("com.bioxx.tfc") && !transformedName.equals("net.minecraft.item.ItemBlock"))
+        {
+            ClassNode classNode = new ClassNode();
+            ClassReader classReader = new ClassReader(bytes);
+            classReader.accept(classNode, 0);
+
+            if (!hasBlockField(classNode)) return bytes;
+
+            CLASSES_OF_INTEREST.add(transformedName);
+
+            for (MethodNode m : classNode.methods)
+            {
+                if (!m.name.equals("<init>")) continue;
+
+                InsnList initObjectCall = new InsnList();
+                initObjectCall.add(new LdcInsnNode(transformedName));
+                initObjectCall.add(new VarInsnNode(ALOAD, 0));
+                initObjectCall.add(new MethodInsnNode(INVOKESTATIC, "net/dries007/tfctweaks/asm/FluidHacksCT", "initObject", "(Ljava/lang/String;Ljava/lang/Object;)V", false));
+                m.instructions.insert(findInitCall(m.instructions), initObjectCall);
+            }
+
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            classNode.accept(writer);
+            return writer.toByteArray();
+        }
+
         return bytes;
     }
 
-    private byte[] magic(byte[] bytes)
+    /**
+     * http://stackoverflow.com/a/13767022
+     * <pre>
+     *     Each instance initialization method (§2.9), except for the instance initialization method derived from the constructor of class Object,
+     *     must call either another instance initialization method of this or an instance initialization method of its direct superclass super before its instance members are accessed.
+     * </pre>
+     */
+    private AbstractInsnNode findInitCall(InsnList instructions)
     {
-        FMLLog.info("Found the FluidRegistry class...");
+        ListIterator<AbstractInsnNode> i = instructions.iterator();
+        while (i.hasNext())
+        {
+            AbstractInsnNode node = i.next();
+            if (node.getOpcode() == INVOKESPECIAL) return node;
+        }
+        throw new IllegalStateException("Class violates section 4.9.2 of the JVM specification on structural constraints.");
+    }
+
+    /**
+     * Not fool proof!
+     * (Does not work if field is Object for example)
+     * But it does catch subclasses in the same package, since it uses string.contains(, not string.equals(
+     */
+    private boolean hasBlockField(ClassNode classNode)
+    {
+        for (FieldNode fieldNode : classNode.fields)
+        {
+            if (fieldNode.desc.startsWith("Lnet/minecraft/block/Block")) // || (fieldNode.signature != null && (fieldNode.signature.contains("net/minecraft/block/Block"))))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private byte[] fluidRegistryMagic(byte[] bytes)
+    {
+        LOG.info("Found the FluidRegistry class...");
         ClassNode classNode = new ClassNode();
         ClassReader classReader = new ClassReader(bytes);
         classReader.accept(classNode, 0);
@@ -76,7 +147,7 @@ public class FluidRegistryCT implements IClassTransformer
         {
             if (m.name.equals("<clinit>") && m.desc.equals("()V"))
             {
-                FMLLog.info("Found the <clinit> method...");
+                LOG.info("Found the <clinit> method...");
 
                 ListIterator<AbstractInsnNode> i = m.instructions.iterator();
                 while (i.hasNext())
@@ -99,13 +170,13 @@ public class FluidRegistryCT implements IClassTransformer
                     m.instructions.remove(fieldInsnNode);
                     m.instructions.remove(methodInsnNode);
                     m.instructions.remove(insnNode);
-                    FMLLog.info("Removed the " + fieldInsnNode.name + " registration.");
+                    LOG.info("Removed the " + fieldInsnNode.name + " registration.");
                     done++;
                 }
             }
             else if (m.name.equals("getFluid") && m.desc.equals("(Ljava/lang/String;)Lnet/minecraftforge/fluids/Fluid;"))
             {
-                FMLLog.info("Found the getFluid method...");
+                LOG.info("Found the getFluid method...");
                 InsnList insnList = new InsnList();
                 {
                     LabelNode labelFirstIf = new LabelNode();
@@ -192,7 +263,7 @@ public class FluidRegistryCT implements IClassTransformer
 
         if (done != DONE)
         {
-            FMLLog.severe("\n######################################################################################\n" +
+            LOG.fatal("\n######################################################################################\n" +
                     "######################################################################################\n" +
                     "######################################################################################\n" +
                     "OUR ASM FLUID HACK FAILED! PLEASE MAKE AN ISSUE REPORT ON GITHUB WITH A COMPLETE MODLIST! https://github.com/dries007/TFC-Tweaks\n" +
@@ -204,62 +275,5 @@ public class FluidRegistryCT implements IClassTransformer
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         classNode.accept(writer);
         return writer.toByteArray();
-    }
-
-    /*
-     * Dummy methods
-     */
-    static BiMap<String, Fluid> fluids = null;
-
-    /*
-    ORIGINAL:
-        GETSTATIC net/minecraftforge/fluids/FluidRegistry.fluids : Lcom/google/common/collect/BiMap;
-        ALOAD 0
-        INVOKEINTERFACE com/google/common/collect/BiMap.get (Ljava/lang/Object;)Ljava/lang/Object;
-        CHECKCAST net/minecraftforge/fluids/Fluid
-        ARETURN
-     */
-    @SuppressWarnings("ALL")
-    private static Fluid getFluid(String fluidName)
-    {
-        if (FluidHacks.makeAllWaterFTCWater && fluidName.equals("water")) return TFCFluids.FRESHWATER;
-        else if (FluidHacks.makeAllLavaFTCLava && fluidName.equals("lava")) return TFCFluids.LAVA;
-
-        return fluids.get(fluidName);
-    }
-
-    /*
-    ORIGINAL:
-        ALOAD 0
-        IFNULL L0
-        GETSTATIC net/minecraftforge/fluids/FluidRegistry.fluids : Lcom/google/common/collect/BiMap;
-        ALOAD 0
-        INVOKEVIRTUAL net/minecraftforge/fluids/Fluid.getName ()Ljava/lang/String;
-        INVOKEINTERFACE com/google/common/collect/BiMap.containsKey (Ljava/lang/Object;)Z
-        IFEQ L0
-        ICONST_1
-        GOTO L1
-        L0
-        ICONST_0
-        L1
-        IRETURN
-     */
-    @SuppressWarnings("ALL")
-    public static boolean isFluidRegistered(Fluid fluid)
-    {
-        return fluid != null && FluidRegistry.isFluidRegistered(fluid.getName());
-    }
-
-    /*
-    ORIGINAL:
-        GETSTATIC net/minecraftforge/fluids/FluidRegistry.fluids : Lcom/google/common/collect/BiMap;
-        ALOAD 0
-        INVOKEINTERFACE com/google/common/collect/BiMap.containsKey (Ljava/lang/Object;)Z
-        IRETURN
-     */
-    @SuppressWarnings("ALL")
-    public static boolean isFluidRegistered(String fluidName)
-    {
-        return "water".equals(fluidName) || "lava".equals(fluidName) || fluids.containsKey(fluidName);
     }
 }

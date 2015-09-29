@@ -57,7 +57,9 @@ public class FluidHacks
     public static final Fluid OLD_WATER_FLUID = FluidRegistry.WATER;
     public static final Fluid OLD_LAVA_FLUID = FluidRegistry.LAVA;
     public static final Block OLD_WATER_BLOCK = Blocks.water;
+    public static final Block OLD_FLOWING_WATER_BLOCK = Blocks.flowing_water;
     public static final Block OLD_LAVA_BLOCK = Blocks.lava;
+    public static final Block OLD_FLOWINING_LAVA_BLOCK = Blocks.flowing_lava;
 
     private static boolean magic = false;
     private static BiMap<String, Fluid> fluidsMap = ReflectionHelper.getPrivateValue(FluidRegistry.class, null, "fluids");
@@ -76,18 +78,13 @@ public class FluidHacks
     {
         if (magic) throw new IllegalStateException("You can't magic twice.");
         magic = true;
-        ReflectionHelper.setPrivateValue(FluidRegistry.class, null, null, "fluidBlocks");
-        TFCTweaks.log.fatal("lookupFluidForBlock freshWater: {}", FluidRegistry.lookupFluidForBlock(TFCBlocks.freshWaterStationary));
-        TFCTweaks.log.fatal("lookupFluidForBlock water: {}", FluidRegistry.lookupFluidForBlock(Blocks.water));
-        TFCTweaks.log.fatal("lookupFluidForBlock tfc lava: {}", FluidRegistry.lookupFluidForBlock(TFCBlocks.lavaStationary));
-        TFCTweaks.log.fatal("lookupFluidForBlock lava: {}", FluidRegistry.lookupFluidForBlock(Blocks.lava));
-        ReflectionHelper.setPrivateValue(FluidRegistry.class, null, null, "fluidBlocks");
 
         // do the hack
         if (makeAllWaterFTCWater)
         {
             Helper.setFinalStatic(ReflectionHelper.findField(FluidRegistry.class, "WATER"), TFCFluids.FRESHWATER);
             Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150355_j", "water"), TFCBlocks.freshWaterStationary);
+            Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150358_i", "flowing_water"), TFCBlocks.freshWater);
         }
         else FluidRegistry.registerFluid(OLD_WATER_FLUID);
 
@@ -95,14 +92,15 @@ public class FluidHacks
         {
             Helper.setFinalStatic(ReflectionHelper.findField(FluidRegistry.class, "LAVA"), TFCFluids.LAVA);
             Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150353_l", "lava"), TFCBlocks.lavaStationary);
+            Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150356_k", "flowing_lava"), TFCBlocks.lava);
         }
         else FluidRegistry.registerFluid(OLD_LAVA_FLUID);
 
-        ReflectionHelper.setPrivateValue(FluidRegistry.class, null, null, "fluidBlocks");
-        TFCTweaks.log.fatal("lookupFluidForBlock freshWater: {}", FluidRegistry.lookupFluidForBlock(TFCBlocks.freshWaterStationary));
-        TFCTweaks.log.fatal("lookupFluidForBlock water: {}", FluidRegistry.lookupFluidForBlock(Blocks.water));
-        TFCTweaks.log.fatal("lookupFluidForBlock tfc lava: {}", FluidRegistry.lookupFluidForBlock(TFCBlocks.lavaStationary));
-        TFCTweaks.log.fatal("lookupFluidForBlock lava: {}", FluidRegistry.lookupFluidForBlock(Blocks.lava));
+        TFCTweaks.log.info(Blocks.lava == TFCBlocks.lavaStationary);
+        TFCTweaks.log.info(Blocks.flowing_lava == TFCBlocks.lava);
+        TFCTweaks.log.info(Blocks.water == TFCBlocks.freshWaterStationary);
+        TFCTweaks.log.info(Blocks.flowing_water == TFCBlocks.freshWater);
+
         ReflectionHelper.setPrivateValue(FluidRegistry.class, null, null, "fluidBlocks");
     }
 }

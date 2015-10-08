@@ -65,7 +65,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 /**
  * @author Dries007
  */
-@Mod(modid = MODID, dependencies = "required-after:terrafirmacraft;before:*", useMetadata = false)
+@Mod(modid = MODID, dependencies = "required-after:terrafirmacraft;before:*")
 public class TFCTweaks
 {
     public static Logger log;

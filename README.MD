@@ -20,7 +20,4 @@ TFC forum post [here](http://terrafirmacraft.com/f/topic/8578-).
 Features
 --------
 
-- OreDictionary armor dye recipe (always on)
-- Fuel on firepit despawn prevention (off by default, despawn time configurable)
-- Combine foods on pickup (off by default)
-- Disable zombie flesh drops (off by default)
+[See the forum post or the git commit log for an up to date list.](http://terrafirmacraft.com/f/topic/8578-tfc-07924-tfc-tweaks-unifies-water/)

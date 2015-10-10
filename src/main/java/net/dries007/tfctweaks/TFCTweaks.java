@@ -65,7 +65,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 /**
  * @author Dries007
  */
-@Mod(modid = MODID, dependencies = "required-after:terrafirmacraft;before:*")
+@Mod(modid = MODID, dependencies = "before:*", useMetadata = false)
 public class TFCTweaks
 {
     public static Logger log;
@@ -88,7 +88,7 @@ public class TFCTweaks
     public void preInit(FMLPreInitializationEvent event)
     {
         log = event.getModLog();
-
+        
         FMLCommonHandler.instance().bus().register(EventHandlers.I);
         MinecraftForge.EVENT_BUS.register(EventHandlers.I);
 

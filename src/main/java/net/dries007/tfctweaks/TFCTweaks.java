@@ -65,7 +65,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 /**
  * @author Dries007
  */
-@Mod(modid = MODID, dependencies = "before:*", useMetadata = false)
+@Mod(modid = MODID, useMetadata = true)
 public class TFCTweaks
 {
     public static Logger log;

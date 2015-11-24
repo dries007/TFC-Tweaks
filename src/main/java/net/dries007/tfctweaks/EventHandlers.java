@@ -156,11 +156,11 @@ public class EventHandlers
             final boolean pickled = Food.isPickled(pickup);
             final boolean brined = Food.isBrined(pickup);
             final boolean dried = Food.isDried(pickup);
-            final int sweet = pickupItem.getTasteSweetMod(pickup);
-            final int sour = pickupItem.getTasteSourMod(pickup);
-            final int salty = pickupItem.getTasteSaltyMod(pickup);
-            final int bitter = pickupItem.getTasteBitterMod(pickup);
-            final int savory = pickupItem.getTasteSavoryMod(pickup);
+            final int sweet = Food.getSweetMod(pickup);
+            final int sour = Food.getSourMod(pickup);
+            final int salty = Food.getSaltyMod(pickup);
+            final int bitter = Food.getBitterMod(pickup);
+            final int savory = Food.getSavoryMod(pickup);
 
             /*
              * Weight & decay of the itemstack to add to the inventory
@@ -188,7 +188,9 @@ public class EventHandlers
                  * if (pickupItem.getTasteBitterMod(stack) != bitter) continue;
                  * if (pickupItem.getTasteSavoryMod(stack) != savory) continue;
                  */
-                if ((stack == null || stack.getItem() == null || stack.getItem() != pickupItem) || (!Food.isSameSmoked(fuelTasteProfile, Food.getFuelProfile(stack))) || (!Food.isSameSmoked(cookedTasteProfile, Food.getCookedProfile(stack))) || (roundedCookedTime != roundCookTime(Food.getCooked(stack))) || (salted != Food.isSalted(stack)) || (pickled != Food.isPickled(stack)) || (brined != Food.isBrined(stack)) || (dried != Food.isDried(stack)) || (pickupItem.getTasteSweetMod(stack) != sweet) || (pickupItem.getTasteSourMod(stack) != sour) || (pickupItem.getTasteSaltyMod(stack) != salty) || (pickupItem.getTasteBitterMod(stack) != bitter) || (pickupItem.getTasteSavoryMod(stack) != savory)) continue;
+                if ((stack == null || stack.getItem() == null || stack.getItem() != pickupItem) || (!Food.isSameSmoked(fuelTasteProfile, Food.getFuelProfile(stack))) || (!Food.isSameSmoked(cookedTasteProfile, Food.getCookedProfile(stack)))
+                        || (roundedCookedTime != roundCookTime(Food.getCooked(stack))) || (salted != Food.isSalted(stack)) || (pickled != Food.isPickled(stack)) || (brined != Food.isBrined(stack)) || (dried != Food.isDried(stack))
+                        || (Food.getSweetMod(stack) != sweet) || (Food.getSourMod(stack) != sour) || (Food.getSaltyMod(stack) != salty) || (Food.getBitterMod(stack) != bitter) || (Food.getSavoryMod(stack) != savory)) continue;
 
                 final float stackWeight = Food.getWeight(stack);
                 final float stackDecay = Food.getDecay(stack);

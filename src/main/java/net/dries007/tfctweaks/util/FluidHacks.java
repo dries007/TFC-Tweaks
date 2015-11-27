@@ -43,7 +43,10 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 import net.dries007.tfctweaks.TFCTweaks;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidRegistry;
 
 /**
@@ -85,21 +88,29 @@ public class FluidHacks
             Helper.setFinalStatic(ReflectionHelper.findField(FluidRegistry.class, "WATER"), TFCFluids.FRESHWATER);
             Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150355_j", "water"), TFCBlocks.freshWaterStationary);
             Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150358_i", "flowing_water"), TFCBlocks.freshWater);
+
+            FluidContainerRegistry.registerFluidContainer(TFCFluids.FRESHWATER, new ItemStack(Items.water_bucket), FluidContainerRegistry.EMPTY_BUCKET);
+            FluidContainerRegistry.registerFluidContainer(TFCFluids.FRESHWATER, new ItemStack(Items.potionitem), FluidContainerRegistry.EMPTY_BOTTLE);
         }
-        else FluidRegistry.registerFluid(OLD_WATER_FLUID);
+        else
+        {
+            FluidRegistry.registerFluid(OLD_WATER_FLUID);
+            FluidContainerRegistry.registerFluidContainer(FluidRegistry.WATER, new ItemStack(Items.water_bucket), FluidContainerRegistry.EMPTY_BUCKET);
+            FluidContainerRegistry.registerFluidContainer(FluidRegistry.WATER, new ItemStack(Items.potionitem), FluidContainerRegistry.EMPTY_BOTTLE);
+        }
 
         if (makeAllLavaFTCLava)
         {
             Helper.setFinalStatic(ReflectionHelper.findField(FluidRegistry.class, "LAVA"), TFCFluids.LAVA);
             Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150353_l", "lava"), TFCBlocks.lavaStationary);
             Helper.setFinalStatic(ReflectionHelper.findField(Blocks.class, "field_150356_k", "flowing_lava"), TFCBlocks.lava);
+            FluidContainerRegistry.registerFluidContainer(TFCFluids.LAVA, new ItemStack(Items.lava_bucket),  FluidContainerRegistry.EMPTY_BUCKET);
         }
-        else FluidRegistry.registerFluid(OLD_LAVA_FLUID);
-
-        TFCTweaks.log.info(Blocks.lava == TFCBlocks.lavaStationary);
-        TFCTweaks.log.info(Blocks.flowing_lava == TFCBlocks.lava);
-        TFCTweaks.log.info(Blocks.water == TFCBlocks.freshWaterStationary);
-        TFCTweaks.log.info(Blocks.flowing_water == TFCBlocks.freshWater);
+        else
+        {
+            FluidRegistry.registerFluid(OLD_LAVA_FLUID);
+            FluidContainerRegistry.registerFluidContainer(FluidRegistry.LAVA, new ItemStack(Items.lava_bucket), FluidContainerRegistry.EMPTY_BUCKET);
+        }
 
         ReflectionHelper.setPrivateValue(FluidRegistry.class, null, null, "fluidBlocks");
     }

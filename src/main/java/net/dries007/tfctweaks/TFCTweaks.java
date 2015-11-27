@@ -52,6 +52,8 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.RecipeSorter;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
@@ -65,7 +67,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 /**
  * @author Dries007
  */
-@Mod(modid = MODID, useMetadata = true)
+@Mod(modid = MODID, useMetadata = false, dependencies = "required-after:terrafirmacraft")
 public class TFCTweaks
 {
     public static Logger log;

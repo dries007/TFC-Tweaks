@@ -54,7 +54,7 @@ public class TFCTweaksLoadingPlugin implements IFMLLoadingPlugin
     {
         if (DISABLE_ASM) return new String[0];
 
-        return new String[]{FluidRegistryCT.class.getName()};
+        return new String[]{FluidRegistryCT.class.getName(), FluidContainerRegistryCT.class.getName()};
     }
 
     @Override

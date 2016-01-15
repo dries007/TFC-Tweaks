@@ -36,10 +36,21 @@
 
 package net.dries007.tfctweaks.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import cpw.mods.fml.common.DummyModContainer;
+import cpw.mods.fml.common.InjectedModContainer;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.ReflectionHelper;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+
+import static net.dries007.tfctweaks.util.Constants.*;
 
 /**
  * @author Dries007
@@ -62,6 +73,49 @@ public class Helper
             modifiersField.setInt(field, modifiers);
         }
         catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * We must force the following load order, otherwise many things break:
+     *  - TFC
+     *  - This mod
+     *  - Anything else
+     */
+    public static void doLoadOrderHaxing()
+    {
+        File injectedDepFile = new File(Loader.instance().getConfigDir(), "injectedDependencies.json");
+
+        JsonArray deps = new JsonArray();
+        JsonObject dep = new JsonObject();
+        dep.addProperty("type", "after");
+        dep.addProperty("target", TFC);
+        deps.add(dep);
+
+        for (ModContainer container : Loader.instance().getModList())
+        {
+            if (container instanceof DummyModContainer || container instanceof InjectedModContainer) continue;
+            String modid = container.getModId();
+            if (modid.equals(MODID) || modid.equals(TFC)) continue;
+            dep = new JsonObject();
+            dep.addProperty("type", "before");
+            dep.addProperty("target", modid);
+            deps.add(dep);
+        }
+
+        JsonArray root = new JsonArray();
+        JsonObject mod = new JsonObject();
+        mod.addProperty("modId", MODID);
+        mod.add("deps", deps);
+        root.add(mod);
+
+        try
+        {
+            FileUtils.write(injectedDepFile, GSON.toJson(root));
+        }
+        catch (IOException e)
         {
             throw new RuntimeException(e);
         }

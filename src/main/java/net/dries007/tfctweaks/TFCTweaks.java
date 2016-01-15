@@ -38,9 +38,12 @@ package net.dries007.tfctweaks;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.ICrashCallable;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.dries007.tfctweaks.asm.FluidContainerRegistryCT;
+import net.dries007.tfctweaks.asm.FluidRegistryCT;
 import net.dries007.tfctweaks.asm.TFCTweaksLoadingPlugin;
 import net.dries007.tfctweaks.cmd.CmdWorldExplorer;
 import net.dries007.tfctweaks.util.FluidHacks;
@@ -52,8 +55,6 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.fluids.FluidContainerRegistry;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.RecipeSorter;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Logger;
@@ -62,12 +63,13 @@ import java.io.File;
 import java.io.IOException;
 
 import static net.dries007.tfctweaks.util.Constants.MODID;
+import static net.dries007.tfctweaks.util.Constants.TFC;
 import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 
 /**
  * @author Dries007
  */
-@Mod(modid = MODID, useMetadata = false, dependencies = "required-after:terrafirmacraft")
+@Mod(modid = MODID, useMetadata = false, dependencies = "required-after:" + TFC)
 public class TFCTweaks
 {
     public static Logger log;
@@ -83,14 +85,42 @@ public class TFCTweaks
     @Mod.EventHandler
     public void construction(FMLConstructionEvent e)
     {
-        if (!TFCTweaksLoadingPlugin.DISABLE_ASM) FluidHacks.construction();
+//        if (!DISABLE_LOADORDER)
+//        {
+//            Helper.doLoadOrderHaxing();
+//            FMLCommonHandler.instance().registerCrashCallable(new ICrashCallable()
+//            {
+//                public String call() throws Exception
+//                {
+//                    return "PLEASE TRY TO START THE GAME AT LEAST TWICE. The load order modifications we do only kick in after a reload.";
+//                }
+//
+//                public String getLabel()
+//                {
+//                    return MODID;
+//                }
+//            });
+//        }
+
+        FMLCommonHandler.instance().registerCrashCallable(new ICrashCallable()
+        {
+            public String call() throws Exception
+            {
+                return String.format("FluidContainerRegistryCT: %d / %d; FluidRegistryCT: %d / %d", FluidContainerRegistryCT.done, FluidContainerRegistryCT.DONE, FluidRegistryCT.done, FluidRegistryCT.DONE);
+            }
+
+            public String getLabel()
+            {
+                return MODID + "-ASM";
+            }
+        });
     }
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
         log = event.getModLog();
-        
+
         FMLCommonHandler.instance().bus().register(EventHandlers.I);
         MinecraftForge.EVENT_BUS.register(EventHandlers.I);
 
@@ -104,7 +134,10 @@ public class TFCTweaks
             log.warn("Please don't include this in your pack config. This is to be considered a DEBUG option only!");
             log.warn("********************************************************************************************");
         }
-        else FluidHacks.doTheMagic();
+        else
+        {
+            FluidHacks.doTheMagic();
+        }
     }
 
     @Mod.EventHandler

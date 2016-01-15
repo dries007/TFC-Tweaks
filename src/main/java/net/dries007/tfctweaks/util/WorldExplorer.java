@@ -36,15 +36,15 @@
 
 package net.dries007.tfctweaks.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ConcurrentModificationException;
-import java.util.List;
-import java.util.Set;
-
+import com.bioxx.tfc.api.TFCBlocks;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSetMultimap;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent;
+import cpw.mods.fml.relauncher.ReflectionHelper;
+import net.dries007.tfctweaks.TFCTweaks;
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandSaveAll;
@@ -58,17 +58,16 @@ import net.minecraft.world.biome.WorldChunkManager;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.common.ForgeChunkManager;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent;
-import cpw.mods.fml.relauncher.ReflectionHelper;
-
-import com.bioxx.tfc.api.TFCBlocks;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSetMultimap;
-import net.dries007.tfctweaks.TFCTweaks;
 import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.Set;
 
 import static com.bioxx.tfc.api.Constant.Global.STONE_FLUXINDEX;
 import static net.minecraft.util.EnumChatFormatting.*;

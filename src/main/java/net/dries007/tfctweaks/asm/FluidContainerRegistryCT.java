@@ -40,18 +40,22 @@ import cpw.mods.fml.common.FMLLog;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import java.util.ListIterator;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.POP;
 
 /**
  * @author Dries007
  */
 public class FluidContainerRegistryCT implements IClassTransformer
 {
-    public static final int DONE = 3;
+    public static final int DONE = 3; // lava bucket + water bucket + water bottle
     public static int done = 0;
 
     @Override
@@ -89,7 +93,7 @@ public class FluidContainerRegistryCT implements IClassTransformer
                     }
                     while (node.getOpcode() != POP);
                     i.remove(); // remove last pop
-                    FMLLog.info("Removed the " + fieldInsnNode.name + " registration.");
+                    FMLLog.info("[FluidContainerRegistryCT] Removed the " + fieldInsnNode.name + " registration.");
                     done++;
                 }
             }
@@ -101,9 +105,10 @@ public class FluidContainerRegistryCT implements IClassTransformer
                     "######################################################################################\n" +
                     "######################################################################################\n" +
                     "OUR ASM FLUID HACK FAILED! PLEASE MAKE AN ISSUE REPORT ON GITHUB WITH A COMPLETE MODLIST! https://github.com/dries007/TFC-Tweaks\n" +
+                    "Done %d out of %d ASM tweaks on class FluidContainerRegistry\n" +
                     "########################################################################################\n" +
                     "########################################################################################\n" +
-                    "########################################################################################\n\n");
+                    "########################################################################################\n\n", done, DONE);
         }
 
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);

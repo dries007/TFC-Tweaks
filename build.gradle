@@ -37,7 +37,7 @@ archivesBaseName = 'TFC-Tweaks'
 def githuborg = 'dries007'
 def description = 'Some small tweaks to the vanilla TerraFirmaCraft gameplay'
 minecraft {
-    version = "1.7.10-10.13.4.1448-1.7.10"
+    version = "1.7.10-10.13.4.1566-1.7.10"
     runDir = "run"
 	at('lib_jars/tfc_at.cfg')
 }

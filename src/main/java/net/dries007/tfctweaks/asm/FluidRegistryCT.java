@@ -43,6 +43,7 @@ import net.dries007.tfctweaks.util.FluidHacks;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
@@ -56,7 +57,7 @@ import static org.objectweb.asm.Opcodes.*;
  */
 public class FluidRegistryCT implements IClassTransformer
 {
-    public static final int DONE = 3;
+    public static final int DONE = 6; // water register + lava register + getFluid + isFluidRegistered(fluid) + isFluidRegistered(string) + getFluidStack
     public static int done = 0;
 
     @Override
@@ -99,7 +100,7 @@ public class FluidRegistryCT implements IClassTransformer
                     m.instructions.remove(fieldInsnNode);
                     m.instructions.remove(methodInsnNode);
                     m.instructions.remove(insnNode);
-                    FMLLog.info("Removed the " + fieldInsnNode.name + " registration.");
+                    FMLLog.info("[FluidRegistryCT] Removed the " + fieldInsnNode.name + " registration.");
                     done++;
                 }
             }
@@ -132,6 +133,8 @@ public class FluidRegistryCT implements IClassTransformer
                     insnList.add(lableSecondIf);
                 }
                 m.instructions.insertBefore(m.instructions.getFirst(), insnList);
+
+                FMLLog.info("[FluidRegistryCT] Edited getFluid(String) : Fluid.");
                 done++;
             }
             else if (m.name.equals("isFluidRegistered"))
@@ -156,6 +159,9 @@ public class FluidRegistryCT implements IClassTransformer
                     // replace entire method
                     m.instructions.clear();
                     m.instructions.add(insnList);
+
+                    FMLLog.info("[FluidRegistryCT] Edited isFluidRegistered(Fluid) : bool.");
+                    done++;
                 }
                 else if (m.desc.equals("(Ljava/lang/String;)Z"))
                 {
@@ -186,7 +192,42 @@ public class FluidRegistryCT implements IClassTransformer
                     // replace entire method
                     m.instructions.clear();
                     m.instructions.add(insnList);
+
+                    FMLLog.info("[FluidRegistryCT] Edited isFluidRegistered(String) : bool.");
+                    done++;
                 }
+            }
+            else if (m.name.equals("getFluidStack"))
+            {
+                LabelNode notNullNode = null;
+                { // Grab first jump node label
+                    ListIterator<AbstractInsnNode> i = m.instructions.iterator();
+                    while (i.hasNext())
+                    {
+                        AbstractInsnNode node = i.next();
+                        if (node.getOpcode() == IFNE)
+                        {
+                            notNullNode = ((JumpInsnNode) node).label;
+                            break;
+                        }
+                    }
+                }
+
+                InsnList insnList = new InsnList();
+                insnList.add(new LdcInsnNode("water"));
+                insnList.add(new VarInsnNode(ALOAD, 0));
+                insnList.add(new MethodInsnNode(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false));
+                insnList.add(new JumpInsnNode(IFNE, notNullNode));
+                insnList.add(new LdcInsnNode("lava"));
+                insnList.add(new VarInsnNode(ALOAD, 0));
+                insnList.add(new MethodInsnNode(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false));
+                insnList.add(new JumpInsnNode(IFNE, notNullNode));
+
+                // add to the beginning of the list, leave the rest of the method in place.
+                m.instructions.insert(insnList);
+
+                FMLLog.info("[FluidRegistryCT] Edited getFluidStack(String, int) : FluidStack.");
+                done++;
             }
         }
 
@@ -196,9 +237,10 @@ public class FluidRegistryCT implements IClassTransformer
                     "######################################################################################\n" +
                     "######################################################################################\n" +
                     "OUR ASM FLUID HACK FAILED! PLEASE MAKE AN ISSUE REPORT ON GITHUB WITH A COMPLETE MODLIST! https://github.com/dries007/TFC-Tweaks\n" +
+                    "Done %d out of %d ASM tweaks on class FluidRegistry\n" +
                     "########################################################################################\n" +
                     "########################################################################################\n" +
-                    "########################################################################################\n\n");
+                    "########################################################################################\n\n", done, DONE);
         }
 
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -261,5 +303,39 @@ public class FluidRegistryCT implements IClassTransformer
     public static boolean isFluidRegistered(String fluidName)
     {
         return "water".equals(fluidName) || "lava".equals(fluidName) || fluids.containsKey(fluidName);
+    }
+
+    /*
+    ORIGINAL:
+       L0
+        LINENUMBER 270 L0
+        GETSTATIC net/dries007/tfctweaks/asm/FluidRegistryCT.fluids : Lcom/google/common/collect/BiMap;
+        ALOAD 0
+        INVOKEINTERFACE com/google/common/collect/BiMap.containsKey (Ljava/lang/Object;)Z
+        IFNE L1
+       L2
+        LINENUMBER 272 L2
+        ACONST_NULL
+        ARETURN
+       L1
+        LINENUMBER 274 L1
+       FRAME SAME
+        NEW net/minecraftforge/fluids/FluidStack
+        DUP
+        ALOAD 0
+        INVOKESTATIC net/dries007/tfctweaks/asm/FluidRegistryCT.getFluid (Ljava/lang/String;)Lnet/minecraftforge/fluids/Fluid;
+        ILOAD 1
+        INVOKESPECIAL net/minecraftforge/fluids/FluidStack.<init> (Lnet/minecraftforge/fluids/Fluid;I)V
+        ARETURN
+       L3
+     */
+    @SuppressWarnings("ALL")
+    public static FluidStack getFluidStack(String fluidName, int amount)
+    {
+        if (!("water".equals(fluidName) || "lava".equals(fluidName) || fluids.containsKey(fluidName)))
+        {
+            return null;
+        }
+        return new FluidStack(getFluid(fluidName), amount);
     }
 }

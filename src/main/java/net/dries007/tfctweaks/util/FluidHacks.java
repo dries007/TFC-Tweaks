@@ -38,9 +38,7 @@ package net.dries007.tfctweaks.util;
 
 import com.bioxx.tfc.api.TFCBlocks;
 import com.bioxx.tfc.api.TFCFluids;
-import com.google.common.collect.BiMap;
 import cpw.mods.fml.relauncher.ReflectionHelper;
-import net.dries007.tfctweaks.TFCTweaks;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -65,16 +63,10 @@ public class FluidHacks
     public static final Block OLD_FLOWINING_LAVA_BLOCK = Blocks.flowing_lava;
 
     private static boolean magic = false;
-    private static BiMap<String, Fluid> fluidsMap = ReflectionHelper.getPrivateValue(FluidRegistry.class, null, "fluids");
 
     private FluidHacks()
     {
 
-    }
-
-    public static void construction()
-    {
-        // to be called asap, so that the fields are hopefully still intact when we load.
     }
 
     public static void doTheMagic()
